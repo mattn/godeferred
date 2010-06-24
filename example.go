@@ -2,6 +2,19 @@ package main
 
 import . "deferred"
 import "syscall"
+import "http"
+import "xml"
+
+type feed struct {
+	Entry []struct {
+		Title string
+		Link []struct {
+			Rel  string "attr"
+			Href string "attr"
+		}
+		Summary string
+	}
+}
 
 func main() {
 	Deferred().
@@ -37,5 +50,22 @@ func main() {
 		}).
 		Next(func() {
 			println("しゅーりょー！");
+		}).
+		Next(func() {
+			println("otsune:ネットウォッチでもするか！");
+		}).
+		HttpGet("http://b.hatena.ne.jp/otsune/atomfeed").
+		Next(func(res *http.Response) *feed {
+			var f feed;
+			err := xml.Unmarshal(res.Body, &f);
+			if err != nil {
+				println(err.String());
+			}
+			return &f;
+		}).
+		Next(func(f *feed) {
+			for _, entry := range f.Entry {
+				println(entry.Title + "\n\t" + entry.Link[0].Href);
+			}
 		})
 }
