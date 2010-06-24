@@ -3,7 +3,8 @@ package main
 import . "deferred"
 import "syscall"
 import "http"
-import "xml"
+//import "xml"
+import "os"
 
 type feed struct {
 	Entry []struct {
@@ -54,18 +55,24 @@ func main() {
 		Next(func() {
 			println("otsune:ネットウォッチでもするか！");
 		}).
+		/*
 		HttpGet("http://b.hatena.ne.jp/otsune/atomfeed").
 		Next(func(res *http.Response) *feed {
 			var f feed;
-			err := xml.Unmarshal(res.Body, &f);
-			if err != nil {
-				println(err.String());
-			}
-			return &f;
+			xml.Unmarshal(res.Body, &f);
+			return &f
 		}).
 		Next(func(f *feed) {
 			for _, entry := range f.Entry {
 				println(entry.Title + "\n\t" + entry.Link[0].Href);
 			}
+		}).
+		*/
+		HttpGet("http://b.hatena.ne.otsune/"). // this make error
+		Next(func(res *http.Response) {
+			println("ここにはこないよ");
+		}).
+		Error(func(err *os.Error) {
+			println("これはひどい");
 		})
 }
