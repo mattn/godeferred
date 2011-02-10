@@ -1,0 +1,34 @@
+godeferred: Deferred for golang (ports of jsdeferred)
+
+USAGE:
+
+    package main
+    
+    import . "deferred"
+    import "os"
+    
+    func main() {
+        Deferred().
+            Next(func() string {
+				// pass to next v
+                return "Hello World"
+            }).
+            Next(func(v string) (string, os.Error) {
+				// will be shown: Good Morning, Hello World
+                println("Good Morning, " + v)
+
+				// make error, goto Error()
+                return "", os.NewError("Now time is not morning")
+            }).
+            Error(func(err *os.Error) {
+				// will be shown: Ooooops!: Now time is not morning
+                println("Ooooops!: " + (*err).String())
+            })
+    }
+
+
+AUTHOR:
+	Yasuhiro Matsumoto <mattn.jp@gmail.com>
+
+THANKS:
+	cho45: Author of jsdeferred
