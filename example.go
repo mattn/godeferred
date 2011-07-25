@@ -20,40 +20,40 @@ type feed struct {
 func main() {
 	Deferred().
 		Next(func() string {
-			return "「この戻り値が...」"
+			return "This return value pass to..."
 		}).
 		Next(func(v string) {
-			println("ここの引数にくる！:" + v);
+			println("Here:" + v);
 		}).
 		Next(func() {
-			println("かけっこすものよっといで！");
+			println("Come on who want to do foot race!");
 		}).
 		Loop(3, func(i int) {
-			println(string("ABC"[i]) + ":はい！");
+			println(string("ABC"[i]) + ":Yep!");
 		}).
 		Next(func() {
-			println("位置についてよーいどん！");
+			println("Ready Go!");
 		}).
 		Parallel([]interface{} {
 			func() {
-				println("A:一番手だしちょっと昼寝してから行くか");
+				println("A:I'll sleep and go so I'm first to start.");
 				syscall.Sleep(1000*1000*300);
-				println("A:ちょwww");
+				println("A:What happen!?");
 			},
 			func() {
 				syscall.Sleep(1000*1000*200);
-				println("B:たぶん２位かな？");
+				println("B:I maybe second.");
 			},
 			func() {
 				syscall.Sleep(1000*1000*100);
-				println("C:俺いっちばーん！");
+				println("C:I'm fastest!");
 			},
 		}).
 		Next(func() {
-			println("しゅーりょー！");
+			println("Finish!");
 		}).
 		Next(func() {
-			println("otsune:ネットウォッチでもするか！");
+			println("Begin to watch feed");
 		}).
 		HttpGet("http://b.hatena.ne.jp/otsune/atomfeed").
 		Next(func(res *http.Response) *feed {
@@ -68,9 +68,9 @@ func main() {
 		}).
 		HttpGet("http://b.hatena.ne.otsune/"). // this make error
 		Next(func(res *http.Response) {
-			println("ここにはこないよ");
+			println("Don't pass to here.");
 		}).
 		Error(func(err *os.Error) {
-			println("これはひどい");
+			println("Error occur!");
 		})
 }
