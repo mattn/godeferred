@@ -1,15 +1,14 @@
 package main
 
-import . "deferred"
+import . "github.com/mattn/godeferred"
 import "syscall"
 import "http"
 import "xml"
-import "os"
 
 type feed struct {
 	Entry []struct {
 		Title string
-		Link []struct {
+		Link  []struct {
 			Rel  string "attr"
 			Href string "attr"
 		}
@@ -23,54 +22,54 @@ func main() {
 			return "This return value pass to..."
 		}).
 		Next(func(v string) {
-			println("Here:" + v);
+			println("Here:" + v)
 		}).
 		Next(func() {
-			println("Come on who want to do foot race!");
+			println("Come on who want to do foot race!")
 		}).
 		Loop(3, func(i int) {
-			println(string("ABC"[i]) + ":Yep!");
+			println(string("ABC"[i]) + ":Yep!")
 		}).
 		Next(func() {
-			println("Ready Go!");
+			println("Ready Go!")
 		}).
-		Parallel([]interface{} {
+		Parallel([]interface{}{
 			func() {
-				println("A:I'll sleep and go so I'm first to start.");
-				syscall.Sleep(1000*1000*300);
-				println("A:What happen!?");
+				println("A:I'll sleep and go so I'm first to start.")
+				syscall.Sleep(1000 * 1000 * 300)
+				println("A:What happen!?")
 			},
 			func() {
-				syscall.Sleep(1000*1000*200);
-				println("B:I maybe second.");
+				syscall.Sleep(1000 * 1000 * 200)
+				println("B:I maybe second.")
 			},
 			func() {
-				syscall.Sleep(1000*1000*100);
-				println("C:I'm fastest!");
+				syscall.Sleep(1000 * 1000 * 100)
+				println("C:I'm fastest!")
 			},
-		}).
-		Next(func() {
-			println("Finish!");
 		}).
 		Next(func() {
-			println("Begin to watch feed");
+			println("Finish!")
+		}).
+		Next(func() {
+			println("Begin to watch feed")
 		}).
 		HttpGet("http://b.hatena.ne.jp/otsune/atomfeed").
 		Next(func(res *http.Response) *feed {
-			var f feed;
-			xml.Unmarshal(res.Body, &f);
+			var f feed
+			xml.Unmarshal(res.Body, &f)
 			return &f
 		}).
 		Next(func(f *feed) {
 			for _, entry := range f.Entry {
-				println(entry.Title + "\n\t" + entry.Link[0].Href);
+				println(entry.Title + "\n\t" + entry.Link[0].Href)
 			}
 		}).
 		HttpGet("http://b.hatena.ne.otsune/"). // this make error
 		Next(func(res *http.Response) {
-			println("Don't pass to here.");
+			println("Don't pass to here.")
 		}).
-		Error(func(err *os.Error) {
-			println("Error occur!");
-		})
+		Error(func(err *error) {
+		println("Error occur!")
+	})
 }

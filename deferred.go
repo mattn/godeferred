@@ -1,13 +1,17 @@
 package deferred
 
-import "reflect"
+import (
+	"reflect"
+	"url"
+)
 import "http"
+import "net/http/httputil"
 import "os"
 import "net"
 
 type deferred struct {
 	ret []reflect.Value
-	err os.Error
+	err error
 }
 
 func (v *deferred) succeeded() bool {
@@ -21,8 +25,8 @@ func (v *deferred) check() {
 	if len(v.ret) > 0 {
 		last := v.ret[len(v.ret)-1]
 		switch last.Interface().(type) {
-		case os.Error:
-			v.err = last.Interface().(os.Error)
+		case error:
+			v.err = last.Interface().(error)
 		}
 	}
 }
@@ -31,8 +35,8 @@ func (v *deferred) Error(f interface{}) *deferred {
 	if v.err == nil {
 		return v
 	}
-	ff := reflect.NewValue(f).(*reflect.FuncValue)
-	ret := ff.Call([]reflect.Value{reflect.NewValue(&v.err)})
+	ff := reflect.ValueOf(f)
+	ret := ff.Call([]reflect.Value{reflect.ValueOf(&v.err)})
 	if len(ret) > 0 {
 		v.ret = ret
 	}
@@ -43,8 +47,8 @@ func (v *deferred) Next(f interface{}) *deferred {
 	if !v.succeeded() {
 		return v
 	}
-	ff := reflect.NewValue(f).(*reflect.FuncValue)
-	ft := ff.Type().(*reflect.FuncType)
+	ff := reflect.ValueOf(f)
+	ft := ff.Type()
 	ret := ff.Call(v.ret[0:ft.NumIn()])
 	if len(ret) > 0 {
 		v.ret = ret
@@ -57,9 +61,9 @@ func (v *deferred) Loop(n int, f interface{}) *deferred {
 	if !v.succeeded() {
 		return v
 	}
-	ff := reflect.NewValue(f).(*reflect.FuncValue)
+	ff := reflect.ValueOf(f)
 	for i := 0; i < n; i++ {
-		ff.Call([]reflect.Value{reflect.NewValue(i)})
+		ff.Call([]reflect.Value{reflect.ValueOf(i)})
 	}
 	return v
 }
@@ -70,8 +74,8 @@ func (v *deferred) Parallel(fa []interface{}) *deferred {
 	}
 	wait := make(chan interface{}, len(fa))
 	for _, f := range fa {
-		ff := reflect.NewValue(f).(*reflect.FuncValue)
-		ft := ff.Type().(*reflect.FuncType)
+		ff := reflect.ValueOf(f)
+		ft := ff.Type()
 		go func() { wait <- ff.Call(v.ret[0:ft.NumIn()]) }()
 	}
 	for _ = range fa {
@@ -81,40 +85,40 @@ func (v *deferred) Parallel(fa []interface{}) *deferred {
 	return v
 }
 
-func (v *deferred) HttpGet(url string) *deferred {
+func (v *deferred) HttpGet(url_ string) *deferred {
 	if !v.succeeded() {
 		return v
 	}
 	var r *http.Response
-	var err os.Error
+	var err error
 	if proxy := os.Getenv("HTTP_PROXY"); len(proxy) > 0 {
-		proxy_url, err := http.ParseURL(proxy)
+		proxy_url, err := url.Parse(proxy)
 		if err != nil {
 			v.err = err
 			return v
 		}
-		tcp, err := net.Dial("tcp", "", proxy_url.Host)
+		tcp, err := net.Dial("tcp", proxy_url.Host)
 		if err != nil {
 			v.err = err
 			return v
 		}
-		conn := http.NewClientConn(tcp, nil)
+		conn := httputil.NewClientConn(tcp, nil)
 		var req http.Request
-		req.URL, err = http.ParseURL(url)
+		req.URL, err = url.Parse(url_)
 		if err != nil {
 			v.err = err
 			return v
 		}
 		req.Method = "GET"
 		err = conn.Write(&req)
-		req.URL, err = http.ParseURL(url)
-		r, err = conn.Read()
+		req.URL, err = url.Parse(url_)
+		r, err = conn.Read(&req)
 		if r != nil && (r.StatusCode/100) >= 4 {
 			v.err = os.NewSyscallError(r.Status, r.StatusCode)
 			return v
 		}
 	} else {
-		r, _, err = http.Get(url)
+		r, err = http.Get(url_)
 	}
 	v.check()
 	return Deferred(r, err)
@@ -124,7 +128,7 @@ func Deferred(v ...interface{}) *deferred {
 	d := &deferred{nil, nil}
 	d.ret = make([]reflect.Value, len(v))
 	for i := range v {
-		d.ret[i] = reflect.NewValue(v[i])
+		d.ret[i] = reflect.ValueOf(v[i])
 	}
 	return d
 }
