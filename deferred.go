@@ -1,10 +1,10 @@
 package deferred
 
 import (
+	"net/url"
 	"reflect"
-	"url"
 )
-import "http"
+import "net/http"
 import "net/http/httputil"
 import "os"
 import "net"

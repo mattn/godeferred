@@ -2,8 +2,8 @@ package main
 
 import . "github.com/mattn/godeferred"
 import "syscall"
-import "http"
-import "xml"
+import "net/http"
+import "encoding/xml"
 
 type feed struct {
 	Entry []struct {
