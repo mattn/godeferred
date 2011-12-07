@@ -1,9 +1,11 @@
 package main
 
-import . "github.com/mattn/godeferred"
-import "syscall"
-import "net/http"
-import "encoding/xml"
+import (
+	"encoding/xml"
+	. "github.com/mattn/godeferred"
+	"net/http"
+	"time"
+)
 
 type feed struct {
 	Entry []struct {
@@ -36,15 +38,15 @@ func main() {
 		Parallel([]interface{}{
 			func() {
 				println("A:I'll sleep and go so I'm first to start.")
-				syscall.Sleep(1000 * 1000 * 300)
+				time.Sleep(1000 * 1000 * 300)
 				println("A:What happen!?")
 			},
 			func() {
-				syscall.Sleep(1000 * 1000 * 200)
+				time.Sleep(1000 * 1000 * 200)
 				println("B:I maybe second.")
 			},
 			func() {
-				syscall.Sleep(1000 * 1000 * 100)
+				time.Sleep(1000 * 1000 * 100)
 				println("C:I'm fastest!")
 			},
 		}).

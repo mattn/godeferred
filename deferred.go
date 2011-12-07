@@ -1,13 +1,14 @@
 package deferred
 
 import (
+	"errors"
+	"net"
+	"net/http"
+	"net/http/httputil"
 	"net/url"
+	"os"
 	"reflect"
 )
-import "net/http"
-import "net/http/httputil"
-import "os"
-import "net"
 
 type deferred struct {
 	ret []reflect.Value
@@ -114,7 +115,7 @@ func (v *deferred) HttpGet(url_ string) *deferred {
 		req.URL, err = url.Parse(url_)
 		r, err = conn.Read(&req)
 		if r != nil && (r.StatusCode/100) >= 4 {
-			v.err = os.NewSyscallError(r.Status, r.StatusCode)
+			v.err = errors.New(r.Status)
 			return v
 		}
 	} else {
